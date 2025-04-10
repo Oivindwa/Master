@@ -1,0 +1,9 @@
+7z e -pHooray2024 xfiles.7z
+cat semaph.c
+sed -i 's/, X/, 5/g' semaph.c
+gcc -Wall semaph.c -o semaph
+./semaph
+sed -i '11a\sem_wait(&semaphore);\n' semaph.c
+sed -i '16a\sem_post(&semaphore);\n' semaph.c
+gcc -Wall semaph.c -o semaph
+./semaph
