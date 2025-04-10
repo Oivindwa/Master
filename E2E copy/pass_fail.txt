@@ -1,3 +1,0 @@
-[2025-03-14 11:25:49] PASSED - Open Application
-[2025-03-14 11:26:10] PASSED - Logged into Guacamole
-[2025-03-14 11:26:10] PASSED - Connection to Linux container established
