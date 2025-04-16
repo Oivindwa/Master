@@ -11,7 +11,6 @@ from Functions import (
     logout
 )
 
-#Setup 
 chrome_options = Options()
 chrome_options.add_argument("--disable-popup-blocking")
 chrome_options.add_argument("--disable-search-engine-choice-screen")
@@ -25,7 +24,6 @@ driver = webdriver.Chrome(options=chrome_options)
 driver.set_window_size(300, 700)
 
 
-# Clear any previous error log
 open("pass_fail.txt", "w").close()
 
 def test_results(message):
