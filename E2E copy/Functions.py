@@ -17,7 +17,6 @@ from selenium.common.exceptions import (
     NoSuchElementException
 )
 
-# Import the locators from the separate file
 from locators import (
     USERNAME_LOCATORS,
     PASSWORD_LOCATORS,
@@ -27,7 +26,6 @@ from locators import (
     RELOGIN_BUTTON_LOCATORS
 )
 
-# Clear any previous error log
 open("error_log.txt", "w").close()
 
 def log_error(error_message):
@@ -41,14 +39,14 @@ def log_error(error_message):
 
 
 def wait_for_best_locator(driver, locators, timeout):
-    locators = sorted(locators, key=itemgetter(2))  # Sort locators by weight
+    locators = sorted(locators, key=itemgetter(2))  
     for by, value, weight in locators:
         try:
             print(f"Trying locator: {by}='{value}' (weight: {weight})")
             wait = WebDriverWait(driver, timeout)
             element = wait.until(EC.presence_of_element_located((by, value)))
             print(f"Found element: {element.text} (weight: {weight})")
-            return element  # Return first successful match
+            return element  
         except Exception as e:
             log_error(f"Failed locator: {by}='{value}' (weight: {weight}) -- ERROR: {e}")
 
@@ -78,7 +76,6 @@ def read_cred():
     try:
         with open('credentials.json', 'r') as file:
             credentials = json.load(file)
-            # Extract username and password
             username = credentials.get('username')
             password = credentials.get('password')
 
@@ -93,9 +90,9 @@ def read_cred():
 def login(driver):
     try:
         wait = WebDriverWait(driver, 100)
-        #terminal = wait.until(EC.presence_of_element_located((By.NAME, "username")))
+        terminal = wait.until(EC.presence_of_element_located((By.NAME, "username")))
         test2 = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "div.password-field input[type='password']")))
-        #test3 = wait.until(EC.element_to_be_clickable((By.NAME, "username")))
+        test3 = wait.until(EC.element_to_be_clickable((By.NAME, "username")))
 
 
         print(f"FOUND IT!!!  --- {test2} -- ")
@@ -115,13 +112,11 @@ def login(driver):
         login_button.click()
 
         try:
-    # Wait up to 5 seconds for the error element to become visible
             WebDriverWait(driver, 5).until(
                 EC.visibility_of_element_located((By.CSS_SELECTOR, ".login-error"))
             )
             return "FAILED - Logged into Guacamole"
         except TimeoutException:
-            # If the error element is not visible after 5 seconds, assume login was successful
             return "PASSED - Logged into Guacamole"
 
 
@@ -151,20 +146,6 @@ def terminal_ready(driver):
 
 
 def wait_for_prompt(driver, crop_box, timeout, stage, command):
-    """
-    Waits until the terminal prompt (identified by ":~$") is detected in the cropped screenshot.
-    
-    Parameters:
-        driver: Selenium WebDriver instance.
-        crop_box: Tuple (left, upper, right, lower) to crop the screenshot.
-        timeout: Maximum time in seconds to wait.
-        stage: Either 'before' or 'after' command execution.
-        command: The command string (used for logging messages).
-        
-    Returns:
-        (True, extracted_text) if prompt is found,
-        (False, error_message) if timeout is exceeded.
-    """
     start_time = time()
     while True:
         elapsed_time = time() - start_time
@@ -178,7 +159,6 @@ def wait_for_prompt(driver, crop_box, timeout, stage, command):
         driver.save_screenshot("test.png")
         screenshot = Image.open("test.png")
         cropped_screenshot = screenshot.crop(crop_box)
-        # Resize the cropped area to enlarge the text for OCR
         resized_screenshot = cropped_screenshot.resize(
             (cropped_screenshot.width * 2, cropped_screenshot.height * 2),
             Image.LANCZOS
@@ -197,45 +177,34 @@ def wait_for_prompt(driver, crop_box, timeout, stage, command):
                 print("Waiting for prompt before executing the command...")
             else:
                 print("Still waiting for prompt after executing the command...")
-            #print(f"Extracted Text: {text.strip()}")
 
 
 
 def copy_text_to_clipboard(driver, text_to_copy):
-    """
-    Opens the Guacamole clipboard, writes 'text_to_copy' into it, then closes the clipboard.
-    """
-    # 1) Open the clipboard
     open_result = open_clipboard(driver)
     print(open_result)
     
     try:
-        # 2) Wait for the <textarea class="clipboard"> to appear
         wait = WebDriverWait(driver, 10)
         clipboard_element = wait.until(
             EC.visibility_of_element_located((By.CSS_SELECTOR, "textarea.clipboard"))
         )
-
-        # 3) Write text into the clipboard
         clipboard_element.clear()
         clipboard_element.send_keys(text_to_copy)
         sleep(1)
         return True
 
     except Exception as e:
-        # You can choose how to handle errors here
         print(f"Failed to write text to clipboard: {e}")
         return False
 
     finally:
-        # 4) Close the clipboard
         close_result = close_clipboard(driver)
         print(close_result)
 
 
 def open_clipboard(driver):
     try: 
-        # Create and perform a key combination using ActionChains
         actions = ActionChains(driver)
         actions.key_down(Keys.SHIFT)
         actions.key_down(Keys.CONTROL)
@@ -254,7 +223,6 @@ def open_clipboard(driver):
     
 def close_clipboard(driver):
     try: 
-        # Create and perform a key combination using ActionChains
         actions = ActionChains(driver)
         actions.key_down(Keys.SHIFT)
         actions.key_down(Keys.CONTROL)
@@ -275,7 +243,7 @@ def close_clipboard(driver):
 
 
 def run_commands_with_exception_handling(file, terminal, driver, timeout):
-    results = []  # List to store the result for each command
+    results = []  
     clipboard = []
     
     try:
@@ -287,38 +255,30 @@ def run_commands_with_exception_handling(file, terminal, driver, timeout):
         results.append(error_msg)
         return results
 
-    # Define the crop area for the prompt region (adjust as needed)
     crop_box = (0, 0, 800, 600)
     
     for command in commands:
         command = command.strip()
         if not command:
-            continue  # Skip empty lines
+            continue  
 
-        # 1) Wait for the prompt BEFORE sending the command
         success, msg = wait_for_prompt(driver, crop_box, timeout, stage='before', command=command)
         if not success:
             print(msg)
             results.append(msg)
-            # Copy the failure message to clipboard
-            continue  # Skip sending this command due to timeout
+            continue 
 
-        # 2) Send the command to the terminal
         terminal.send_keys(command + Keys.ENTER)
         print(f"Command '{command}' executed. Waiting for prompt to reappear...")
 
-        # 3) Wait for the prompt AFTER executing the command
         success, msg = wait_for_prompt(driver, crop_box, timeout, stage='after', command=command)
         if not success:
             print(msg)
             results.append(msg)
-            # Copy the failure message to clipboard
         else:
-            # Command succeeded
             result = f"PASSED - Command '{command}' executed successfully."
             print(result)
             results.append(result)
-            # Copy the success message to clipboard
             clipboard_success = copy_text_to_clipboard(driver, command)
             if clipboard_success: 
                 clipboard.append(f"PASSED - Copy command: {command} to clipboard")
