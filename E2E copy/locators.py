@@ -1,6 +1,5 @@
 from selenium.webdriver.common.by import By
 
-# Login page locators
 USERNAME_LOCATORS = [
     (By.NAME, "username", 1),
     (By.ID, "guac-field-cz1gpfe58l7ktoee-m87f4ei6", 2),
@@ -18,7 +17,6 @@ LOGIN_BUTTON_LOCATORS = [
     (By.CLASS_NAME, "login", 2),
 ]
 
-# Dropdown and logout locators
 DROPDOWN_LOCATORS = [
     (By.CLASS_NAME, "user-men43u", 1),
     (By.CSS_SELECTOR, "div.user-menu.ng-isolate-scope", 2),
